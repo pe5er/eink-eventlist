@@ -28,6 +28,7 @@ void setup()
   SPI.end();
   SPI.begin(13, 12, 14, 15); 
   Serial.println("setup done");
+  calendar(); //Writes setup text to the screen
 }
 
 struct bitmap_pair
@@ -38,13 +39,10 @@ struct bitmap_pair
 
 void loop()
 {
-  //drawBitmaps();
-  calendar(); //Writes setup text to the screen
-  delay(30000);
 }
 
-const char Text1[] = "Swansea Hackspace";
-const char Text2[] = "Event List";
+//const char Text1[] = "Swansea Hackspace";
+//const char Text2[] = "Event List";
 const char Cal1[] = "Mondays @ 7pm";
 const char Cal1b[] = "Open / Social Night";
 const char Cal2[] = "2nd & 4th Wednesdays @ 7pm";
@@ -62,10 +60,10 @@ void calendar()
   int16_t tbx, tby; uint16_t tbw, tbh;
 
   //Measure width of each text string
-  display.getTextBounds(Text1, 0, 0, &tbx, &tby, &tbw, &tbh);
-  uint16_t x1 = ((display.width() - tbw) / 2) - tbx;
-  display.getTextBounds(Text2, 0, 0, &tbx, &tby, &tbw, &tbh);
-  uint16_t x2 = ((display.width() - tbw) / 2) - tbx;
+  //display.getTextBounds(Text1, 0, 0, &tbx, &tby, &tbw, &tbh);
+  //uint16_t x1 = ((display.width() - tbw) / 2) - tbx;
+  //display.getTextBounds(Text2, 0, 0, &tbx, &tby, &tbw, &tbh);
+  //uint16_t x2 = ((display.width() - tbw) / 2) - tbx;
   display.getTextBounds(Cal1, 0, 0, &tbx, &tby, &tbw, &tbh);
   uint16_t x3 = ((display.width() - tbw) / 2) - tbx;
   display.getTextBounds(Cal1b, 0, 0, &tbx, &tby, &tbw, &tbh);
@@ -86,7 +84,7 @@ void calendar()
   bitmap_pair bitmap_pairs[] =
   {
     //{Bitmap3c200x200_black, Bitmap3c200x200_red},
-    {WS_Bitmap3c200x200_black, WS_Bitmap3c200x200_red}
+    {Calendar_Bitmap3c200x200_black, Calendar_Bitmap3c200x200_red}
   };
   
   display.setFullWindow();
@@ -94,6 +92,7 @@ void calendar()
   do
   {
     display.fillScreen(GxEPD_RED);
+    
     display.fillRect(5, 540, 374, 95, GxEPD_WHITE);
     display.fillRect(5, 440, 374, 95, GxEPD_WHITE);
     display.fillRect(5, 340, 374, 95, GxEPD_WHITE);
@@ -115,43 +114,13 @@ void calendar()
     display.print(Cal4);
     display.setCursor(x10, (600));
     display.print(Cal4b);
-    display.writeImage(bitmap_pairs[0].black, bitmap_pairs[0].red, 420, 92, 200, 200, false, false, true);
-    display.refresh();
-    display.setCursor(x1, (150));
-    display.print(Text1);
-    display.setCursor(x2, (100));
-    display.print(Text2);
+    //different image code
+    //display.writeImage(bitmap_pairs[0].black, bitmap_pairs[0].red, 420, 92, 200, 200, false, false, true);
+    //display.refresh();
+    //posx, posy, bitmap, sizex, sizey, colour
+    display.drawBitmap(92,20,bitmap_pairs[0].black, 200, 200, GxEPD_BLACK);
+    display.drawBitmap(92,20,bitmap_pairs[0].red, 200, 200, GxEPD_RED);
   }
   while (display.nextPage());
-}
-
-
-
-//----------------------------------------------------------------------------------------
-//Bitmap Section
-
-void drawBitmaps()
-{
-  display.setFullWindow();
-  drawBitmaps3c200x200();
-}
-
-
-
-void drawBitmaps3c200x200()
-{
-  bitmap_pair bitmap_pairs[] =
-  {
-    //{Bitmap3c200x200_black, Bitmap3c200x200_red},
-    {WS_Bitmap3c200x200_black, WS_Bitmap3c200x200_red}
-  };
-  
-  if (display.epd2.hasColor)
-  {
-    display.clearScreen(); // use default for white
-    display.writeScreenBuffer(); // use default for white
-    display.writeImage(bitmap_pairs[0].black, bitmap_pairs[0].red, 0, 0, 200, 200, false, false, true);
-    display.refresh();
-    delay(1000);
-  }
+  delay(360000);
 }
