@@ -4,7 +4,6 @@
 // Resolution: 640x384
 
 #define ENABLE_GxEPD2_GFX 0
-
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
@@ -12,6 +11,18 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
+#include <TimeLib.h>
+#include <stdio.h>      /* puts */
+
+tmElements_t tm;
+int Year, Month, Day, Hour, Minute, Second ;
+
+String dayArray[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+String monthArray[12] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+String dayendingArray[31] = {"st", "nd", "rd", "th","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th","th","st","nd","rd","th","th","th","th","th","th","th","st"};
+
+
 
 WiFiMulti wifiMulti;
 
@@ -25,6 +36,29 @@ GxEPD2_3C<GxEPD2_750c, GxEPD2_750c::HEIGHT> display(GxEPD2_750c(/*CS=*/ 15, /*DC
 //#include "bitmaps/Bitmaps3c640x384.h" // 7.5" b/w/r // This doesn't actually exist yet
 
 // 230 x 374 is the bitmap size we want to fill the top of the screen
+StaticJsonDocument<1024> doc;
+
+String Cal1;
+String Cal1b;
+String Cal2;
+String Cal2b;
+String Cal3 = "Your Event";
+String Cal3b = "Soon!";
+String Cal4 = "Your Event";
+String Cal4b = "Soon!";
+//char* Cal3[24];
+//char* Cal3b[24];
+//char* Cal4[24];
+//char* Cal4b[24];
+
+//char* Cal1[] = "Soon";
+//char* Cal1b[] = "Your Event!";
+//char* Cal2[] = "Soon";
+//char* Cal2b[] = "Your Event!";
+//char* Cal3[] = "Soon";
+//char* Cal3b[] = "Your Event!";
+//char* Cal4[] = "Soon";
+//char* Cal4b[] = "Your Event!";
 
 void setup()
 {
@@ -35,14 +69,13 @@ void setup()
       Serial.flush();
       delay(1000);
   }
+
   wifiMulti.addAP("Hackspace", "electronics");
   
   display.init(115200); // uses standard SPI pins, e.g. SCK(18), MISO(19), MOSI(23), SS(5)
   SPI.end(); //kills any pre-existing connection?
   SPI.begin(13, 12, 14, 15); 
   Serial.println("[SETUP] DONE");
-  fetchHTTP(); //gets JSON data from web server
-  calendar(); //Writes setup text to the screen
 }
 
 struct bitmap_pair
@@ -54,18 +87,15 @@ struct bitmap_pair
 void loop()
 {
   fetchHTTP(); //gets JSON data from web server
+  Calendar(); //Writes setup text to the screen
+  delay(7200000);
 }
 
 //const char Text1[] = "Swansea Hackspace";
 //const char Text2[] = "Event List";
-const char Cal1[] = "Mondays @ 7pm";
-const char Cal1b[] = "Open / Social Night";
-const char Cal2[] = "2nd & 4th Wednesdays @ 7pm";
-const char Cal2b[] = "Crafternoon";
-const char Cal3[] = "Tuesday 19th November";
-const char Cal3b[] = "Axespace";
-const char Cal4[] = "Soon";
-const char Cal4b[] = "Your Event!";
+
+
+
 
 void fetchHTTP() {
     // wait for WiFi connection
@@ -90,7 +120,108 @@ void fetchHTTP() {
             // file found at server
             if(httpCode == HTTP_CODE_OK) {
                 String payload = http.getString();
-                Serial.println(payload);
+                Serial.printf("[HTTP] GET... payload: %s\n", payload);
+
+                //JSON code
+                DeserializationError error = deserializeJson(doc, payload);
+              
+                // Test if parsing succeeds.
+                if (error) {
+                  Serial.print(F("deserializeJson() failed: "));
+                  Serial.println(error.c_str());
+                  return;
+                }
+                
+                JsonObject event1 = doc[0];
+                JsonObject event2 = doc[1];
+                JsonObject event3 = doc[2];
+                JsonObject event4 = doc[3];
+
+                const char* end1 = event1["end"];
+                Cal1 = event1["start"].as<String>();
+                
+                char firstDateTime[50];
+                Cal1.toCharArray(firstDateTime,50);
+                
+                createElements(firstDateTime);
+                unsigned long firstTime = makeTime(tm);
+                //Serial.println(firstTime);
+                
+                int varweekday = ( weekday(firstTime )) ;
+                int varday = ( day(firstTime )) ;
+                int varmonth = ( month(firstTime )) ;
+                Cal1 = dayArray[varweekday-1] + " " + varday + dayendingArray[varday] + " of " + monthArray[varmonth-1];
+
+                Cal1b = event1["title"].as<String>();
+
+                const char* end2 = event2["end"];
+                Cal2 = event2["start"].as<String>();
+
+                firstDateTime[50];
+                Cal2.toCharArray(firstDateTime,50);
+                
+                createElements(firstDateTime);
+                firstTime = makeTime(tm);
+                //Serial.println(firstTime);
+                
+                varweekday = ( weekday(firstTime )) ;
+                varday = ( day(firstTime )) ;
+                varmonth = ( month(firstTime )) ;
+                Cal2 = dayArray[varweekday-1] + " " + varday + dayendingArray[varday] + " of " + monthArray[varmonth-1];
+                
+                Cal2b = event2["title"].as<String>();
+                
+                const char* end3 = event3["end"];
+                Cal3 = event3["start"].as<String>();
+
+                                firstDateTime[50];
+                Cal3.toCharArray(firstDateTime,50);
+                
+                createElements(firstDateTime);
+                firstTime = makeTime(tm);
+                //Serial.println(firstTime);
+                
+                varweekday = ( weekday(firstTime )) ;
+                varday = ( day(firstTime )) ;
+                varmonth = ( month(firstTime )) ;
+                Cal3 = dayArray[varweekday-1] + " " + varday + dayendingArray[varday] + " of " + monthArray[varmonth-1];
+                
+                Cal3b = event3["title"].as<String>();
+
+                const char* end4 = event4["end"];
+                Cal4 = event4["start"].as<String>();
+
+                                firstDateTime[50];
+                Cal4.toCharArray(firstDateTime,50);
+                
+                createElements(firstDateTime);
+                firstTime = makeTime(tm);
+                //Serial.println(firstTime);
+                
+                varweekday = ( weekday(firstTime )) ;
+                varday = ( day(firstTime )) ;
+                varmonth = ( month(firstTime )) ;
+                Cal4 = dayArray[varweekday-1] + " " + varday + dayendingArray[varday] + " of " + monthArray[varmonth-1];
+
+                
+                Cal4b = event4["title"].as<String>();
+              
+                // Print values.
+//                Serial.println("event1:");
+//                Serial.println(end1);
+//                Serial.println(Cal1);
+//                Serial.println(Cal1b);
+//              
+//                Serial.println("event2:");
+//                Serial.println(end2);
+//                Serial.println(Cal2);
+//                Serial.println(Cal2b);
+              
+//                Serial.println("event3:");
+//                Serial.println(end3);
+//                Serial.println(Cal3);
+//                Serial.println(Cal3b);
+                
             }
         } else {
             Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -101,9 +232,9 @@ void fetchHTTP() {
         delay(5000);
 }
 
-void calendar()
+void Calendar()
 {
-  display.setRotation(1);
+  display.setRotation(3);
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
   int16_t tbx, tby; uint16_t tbw, tbh;
@@ -171,4 +302,15 @@ void calendar()
     display.drawBitmap(92,20,bitmap_pairs[0].red, 200, 200, GxEPD_RED);
   }
   while (display.nextPage());
+}
+
+
+void createElements(const char *str){
+  sscanf(str, "%d-%d-%dT%d:%d:%d", &Year, &Month, &Day, &Hour, &Minute, &Second);
+  tm.Year = CalendarYrToTm(Year);
+  tm.Month = Month;
+  tm.Day = Day;
+  tm.Hour = Hour;
+  tm.Minute = Minute;
+  tm.Second = Second;
 }
