@@ -15,14 +15,13 @@
 Open Tech Calendar display using Waveshare ESP32 and Eink display
 
 ### What can it do?
-- (WIP) Display calendar events on an E-Ink display
+- Display calendar events on an E-Ink display
 
 # Requirements
 - Waveshare ESP32 Driver Board
 - Waveshare 7.5" 3-Colour E-Ink Display
 
 # Roadmap
-
-- UI Layout
-- Bitmap logo or image
-- Open Tech Calendar integratino
+~~- UI Layout~~
+~~- Bitmap logo or image~~
+~~- Open Tech Calendar integration~~
